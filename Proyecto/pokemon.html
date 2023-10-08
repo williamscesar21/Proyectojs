@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #DDDDDD;
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            margin: 0 auto;
+            text-align: center;
+            background-color: #0C68B2;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #search-container {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            color: #102E6F;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #FEC603;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            color: #102E6F;
+        }
+
+        #pokemon-info {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #pokemon-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pokemon-card {
+            border: 1px solid #DDDDDD;
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            background-color: #0C68B2;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.5s ease-in-out; 
+        }
+
+        .pokemon-card:hover {
+            transform: scale(1.50); 
+        }
+
+        .pokemon-card img {
+            max-width: 100%;
+        }
+
+        h1, h2, h3 {
+            color: #DDDDDD;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Pokémon Finder</h1>
+        
+        <div id="search-container">
+            <label for="pokemonName">Buscar Pokemon por nombre:</label>
+            <input type="text" id="pokemonName" onkeydown="searchOnEnter(event)">
+            <button onclick="searchPokemon()">Buscar</button>
+        </div>
+        
+        <div id="pokemon-info">
+        </div>
+
+        <h2>Algunos Pokemon</h2>
+        <div id="pokemon-list">
+        </div>
+    </div>
+
+    <script>
+        function loadAllPokemon() {
+            const pokemonList = document.getElementById("pokemon-list")
+            for (let i = 0; i < 30; i++) { 
+                const randomPokemonId = Math.floor(Math.random() * 898) + 1
+                fetch(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const pokemonCard = document.createElement("div")
+                        pokemonCard.classList.add("pokemon-card")
+                        pokemonCard.innerHTML = `
+                            <h3>${data.name.toUpperCase()}</h3>
+                            <img src="${data.sprites.front_default}" alt="${data.name}">
+                        `
+                        pokemonCard.addEventListener("click", () => showPokemonInfo(data))
+                        pokemonList.appendChild(pokemonCard)
+                    })
+                    .catch(error => console.error("Error al cargar Pokémon:", error))
+            }
+        }
+
+        loadAllPokemon()
+
+        function showPokemonInfo(pokemonData) {
+            const pokemonInfo = document.getElementById("pokemon-info")
+            pokemonInfo.innerHTML = `
+                <h2>${pokemonData.name.toUpperCase()}</h2>
+                <img src="${pokemonData.sprites.front_default}" alt="${pokemonData.name}">
+                <p>Altura: ${pokemonData.height / 10} m</p>
+                <p>Peso: ${pokemonData.weight / 10} kg</p>
+                <p>Tipo(s): ${pokemonData.types.map(type => type.type.name).join(", ")}</p>
+            `
+        }
+
+        function searchOnEnter(event) {
+            if (event.key === "Enter") {
+                searchPokemon()
+            }
+        }
+
+        function searchPokemon() {
+            const pokemonName = document.getElementById("pokemonName").value.toLowerCase()
+            const pokemonInfo = document.getElementById("pokemon-info")
+            
+            fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
+                .then(response => response.json())
+                .then(data => {
+                    pokemonInfo.innerHTML = `
+                        <h2>${data.name.toUpperCase()}</h2>
+                        <img src="${data.sprites.front_default}" alt="${data.name}">
+                        <p>Altura: ${data.height / 10} m</p>
+                        <p>Peso: ${data.weight / 10} kg</p>
+                        <p>Tipo(s): ${data.types.map(type => type.type.name).join(", ")}</p>
+                    `
+                })
+                .catch(error => {
+                    console.error("Error al buscar el Pokémon:", error)
+                    pokemonInfo.innerHTML = "<p>Pokémon no encontrado</p>"
+                })
+        }
+    </script>
+</body>
+</html>
